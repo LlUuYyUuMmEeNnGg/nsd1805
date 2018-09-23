@@ -1,0 +1,285 @@
+[root@host51 ~]# netstat -utnlp  | grep  redis-server
+tcp        0      0 192.168.4.51:6351       0.0.0.0:*               LISTEN      1564/redis-server 1 
+tcp        0      0 192.168.4.51:16351      0.0.0.0:*               LISTEN      1564/redis-server 1 
+[root@host51 ~]#
+
+[root@host51 ~]# cat /var/lib/redis/6379/nodes-6351.conf 
+4d6ebbeeebe3590c6bf579025f3e49067493ec20 192.168.4.51:6351@16351 myself,master - 0 0 0 connected
+vars currentEpoch 0 lastVoteEpoch 0
+[root@host51 ~]#
+
+]# redis-cli -h 192.168.4.51 -p  6351
+192.168.4.51:6351> cluster nodes
+192.168.4.51:6351> CLUSTER INFO
++++++++++++++++++++++++++++++++++++++++++
+# yum  -y  install   ruby   rubygems 
+# rpm  -ivh  --nodeps  ruby-devel-2.0.0.648-30.el7.x86_64.rpm
+# gem  install  redis-3.2.1.gem
+
++++++++++++++++++++++++++++++++++++++++++++
+  261  cd redis-4.0.8/
+  265  ls src/*.rb
+  267  echo $PATH
+  269  mkdir /root/bin
+  270  cp src/redis-trib.rb /root/bin
+  271  chmod +x /root/bin/redis-trib.rb 
+  274  redis-trib.rb help
+++++++++++++++++++++++++++++++++++++++++++
+redis-trib.rb   create  --replicas 1 192.168.4.51:6351 192.168.4.52:6352 192.168.4.53:6353 192.168.4.54:6354 192.168.4.55:6355 192.168.4.56:6356
+
+[root@host51 ~]# redis-trib.rb create --replicas 1  \
+> 192.168.4.51:6351 \
+> 192.168.4.52:6352 192.168.4.53:6353 192.168.4.54:6354  \
+> 192.168.4.55:6355 192.168.4.56:6356
+>>> Creating cluster
+>>> Performing hash slots allocation on 6 nodes...
+Using 3 masters:
+192.168.4.51:6351
+192.168.4.52:6352
+192.168.4.53:6353
+Adding replica 192.168.4.55:6355 to 192.168.4.51:6351
+Adding replica 192.168.4.56:6356 to 192.168.4.52:6352
+Adding replica 192.168.4.54:6354 to 192.168.4.53:6353
+M: 4d6ebbeeebe3590c6bf579025f3e49067493ec20 192.168.4.51:6351
+   slots:0-5460 (5461 slots) master
+M: b9f5418fa257acb4b917775122cf1a28f5d423f3 192.168.4.52:6352
+   slots:5461-10922 (5462 slots) master
+M: 108d8a06ce1212b05fbf544b7060c7a589860da3 192.168.4.53:6353
+   slots:10923-16383 (5461 slots) master
+S: 396112978fe02dfd86ebe79e7f85ba611ed00552 192.168.4.54:6354
+   replicates 108d8a06ce1212b05fbf544b7060c7a589860da3
+S: fb2d9f9ed51a198ad0575946d963b7754a89e78c 192.168.4.55:6355
+   replicates 4d6ebbeeebe3590c6bf579025f3e49067493ec20
+S: 96b3d2756f56467e071e3fb8703e0731cc18060c 192.168.4.56:6356
+   replicates b9f5418fa257acb4b917775122cf1a28f5d423f3
+Can I set the above configuration? (type 'yes' to accept): yes
+>>> Nodes configuration updated
+>>> Assign a different config epoch to each node
+>>> Sending CLUSTER MEET messages to join the cluster
+Waiting for the cluster to join...
+>>> Performing Cluster Check (using node 192.168.4.51:6351)
+M: 4d6ebbeeebe3590c6bf579025f3e49067493ec20 192.168.4.51:6351
+   slots:0-5460 (5461 slots) master
+   1 additional replica(s)
+S: 96b3d2756f56467e071e3fb8703e0731cc18060c 192.168.4.56:6356
+   slots: (0 slots) slave
+   replicates b9f5418fa257acb4b917775122cf1a28f5d423f3
+M: b9f5418fa257acb4b917775122cf1a28f5d423f3 192.168.4.52:6352
+   slots:5461-10922 (5462 slots) master
+   1 additional replica(s)
+S: 396112978fe02dfd86ebe79e7f85ba611ed00552 192.168.4.54:6354
+   slots: (0 slots) slave
+   replicates 108d8a06ce1212b05fbf544b7060c7a589860da3
+S: fb2d9f9ed51a198ad0575946d963b7754a89e78c 192.168.4.55:6355
+   slots: (0 slots) slave
+   replicates 4d6ebbeeebe3590c6bf579025f3e49067493ec20
+M: 108d8a06ce1212b05fbf544b7060c7a589860da3 192.168.4.53:6353
+   slots:10923-16383 (5461 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+[root@host51 ~]# 
+
+
+]# redis-cli -h 192.168.4.51 -p  6351
+192.168.4.51:6351> cluster nodes
+192.168.4.51:6351> CLUSTER INFO
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[root@host50 ~]# redis-cli  -c  -h 192.168.4.51 -p 6351
+> keys *
+> set age 19
+> set name bob
+> set sex  girl
+> keys *
+> get name
+> exit
+[root@host50 ~]# redis-cli  -c  -h 192.168.4.53 -p 6353
+> keys *
+> get age
+> get sex
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[root@host50 ~]# redis-trib.rb check  192.168.4.51:6351
+[root@host52 ~]# redis-cli  -h 192.168.4.52 -p 6352 shutdown
+[root@host50 ~]# redis-trib.rb check  192.168.4.51:6351
+
+[root@host52 ~]# /etc/init.d/redis_6379  start
+[root@host50 ~]# redis-trib.rb check  192.168.4.51:6351
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[root@host50 ~]# /etc/init.d/redis_6379  stop
+[root@host50 ~]# rm  -rf /var/lib/redis/6379/*
+
+]# vim /etc/redis/6379.conf
+
+[root@host50 ~]# /etc/init.d/redis_6379 start
+Starting Redis server...
+
+[root@host50 ~]# netstat -utnlp | grep  redis-server
+tcp        0      0 192.168.4.50:6350       0.0.0.0:*               LISTEN      3014/redis-server 1 
+tcp        0      0 192.168.4.50:16350      0.0.0.0:*               LISTEN      3014/redis-server 1 
+[root@host50 ~]#
+
+[root@host51 ~]# redis-trib.rb add-node 192.168.4.50:6350  192.168.4.51:6351
+>>> Adding node 192.168.4.50:6350 to cluster 192.168.4.51:6351
+>>> Performing Cluster Check (using node 192.168.4.51:6351)
+M: 4d6ebbeeebe3590c6bf579025f3e49067493ec20 192.168.4.51:6351
+   slots:0-5460 (5461 slots) master
+   1 additional replica(s)
+M: 96b3d2756f56467e071e3fb8703e0731cc18060c 192.168.4.56:6356
+   slots:5461-10922 (5462 slots) master
+   1 additional replica(s)
+S: b9f5418fa257acb4b917775122cf1a28f5d423f3 192.168.4.52:6352
+   slots: (0 slots) slave
+   replicates 96b3d2756f56467e071e3fb8703e0731cc18060c
+S: 396112978fe02dfd86ebe79e7f85ba611ed00552 192.168.4.54:6354
+   slots: (0 slots) slave
+   replicates 108d8a06ce1212b05fbf544b7060c7a589860da3
+S: fb2d9f9ed51a198ad0575946d963b7754a89e78c 192.168.4.55:6355
+   slots: (0 slots) slave
+   replicates 4d6ebbeeebe3590c6bf579025f3e49067493ec20
+M: 108d8a06ce1212b05fbf544b7060c7a589860da3 192.168.4.53:6353
+   slots:10923-16383 (5461 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+>>> Send CLUSTER MEET to node 192.168.4.50:6350 to make it join the cluster.
+[OK] New node added correctly.
+[root@host51 ~]# 
+
+
+ot@host51 ~]# redis-trib.rb check  192.168.4.51:6351
+>>> Performing Cluster Check (using node 192.168.4.51:6351)
+M: 4d6ebbeeebe3590c6bf579025f3e49067493ec20 192.168.4.51:6351
+   slots:0-5460 (5461 slots) master
+   1 additional replica(s)
+M: 96b3d2756f56467e071e3fb8703e0731cc18060c 192.168.4.56:6356
+   slots:5461-10922 (5462 slots) master
+   1 additional replica(s)
+M: 58a98b45058365c0f90594cce1db897d82a9f0d1 192.168.4.50:6350
+   slots: (0 slots) master
+   0 additional replica(s)
+S: b9f5418fa257acb4b917775122cf1a28f5d423f3 192.168.4.52:6352
+   slots: (0 slots) slave
+   replicates 96b3d2756f56467e071e3fb8703e0731cc18060c
+S: 396112978fe02dfd86ebe79e7f85ba611ed00552 192.168.4.54:6354
+   slots: (0 slots) slave
+   replicates 108d8a06ce1212b05fbf544b7060c7a589860da3
+S: fb2d9f9ed51a198ad0575946d963b7754a89e78c 192.168.4.55:6355
+   slots: (0 slots) slave
+   replicates 4d6ebbeeebe3590c6bf579025f3e49067493ec20
+M: 108d8a06ce1212b05fbf544b7060c7a589860da3 192.168.4.53:6353
+   slots:10923-16383 (5461 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+[root@host51 ~]# 
+
+
+
+
+
+ot@host51 ~]# redis-trib.rb reshard  192.168.4.51:6351
+ot@host51 ~]# redis-trib.rb check  192.168.4.51:6351
+
+[root@host51 ~]# redis-cli -c  -h 192.168.4.50 -p 6350
+192.168.4.50:6350> keys *
+1) "age"
+2) "name"
+3) "y"
+4) "lines"
+192.168.4.50:6350> exit
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+[root@host51 ~]# redis-trib.rb  add-node --slave   192.168.4.57:6357  192.168.4.51:6351
+
+
+>>> Adding node 192.168.4.57:6357 to cluster 192.168.4.51:6351
+>>> Performing Cluster Check (using node 192.168.4.51:6351)
+M: 4d6ebbeeebe3590c6bf579025f3e49067493ec20 192.168.4.51:6351
+   slots:1365-5460 (4096 slots) master
+   1 additional replica(s)
+M: 96b3d2756f56467e071e3fb8703e0731cc18060c 192.168.4.56:6356
+   slots:6827-10922 (4096 slots) master
+   1 additional replica(s)
+M: 58a98b45058365c0f90594cce1db897d82a9f0d1 192.168.4.50:6350
+   slots:0-1364,5461-6826,10923-12287 (4096 slots) master
+   0 additional replica(s)
+S: b9f5418fa257acb4b917775122cf1a28f5d423f3 192.168.4.52:6352
+   slots: (0 slots) slave
+   replicates 96b3d2756f56467e071e3fb8703e0731cc18060c
+S: 396112978fe02dfd86ebe79e7f85ba611ed00552 192.168.4.54:6354
+   slots: (0 slots) slave
+   replicates 108d8a06ce1212b05fbf544b7060c7a589860da3
+S: fb2d9f9ed51a198ad0575946d963b7754a89e78c 192.168.4.55:6355
+   slots: (0 slots) slave
+   replicates 4d6ebbeeebe3590c6bf579025f3e49067493ec20
+M: 108d8a06ce1212b05fbf544b7060c7a589860da3 192.168.4.53:6353
+   slots:12288-16383 (4096 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+Automatically selected master 192.168.4.50:6350
+>>> Send CLUSTER MEET to node 192.168.4.57:6357 to make it join the cluster.
+Waiting for the cluster to join.
+>>> Configure node as replica of 192.168.4.50:6350.
+[OK] New node added correctly.
+[root@host51 ~]# 
+
++++++++++++++++++++++++++++++++++++++++
+
+[root@host51 ~]# redis-trib.rb check  192.168.4.51:6351
+
+[root@host51 ~]# redis-trib.rb del-node  192.168.4.51:6351 b265f558cdf91a716e13712afb16e81746506c8a
+
+
+>>> Removing node b265f558cdf91a716e13712afb16e81746506c8a from cluster 192.168.4.51:6351
+>>> Sending CLUSTER FORGET messages to the cluster...
+>>> SHUTDOWN the node.
+[root@host51 ~]# 
+
+
+[root@host51 ~]# redis-trib.rb check  192.168.4.51:6351
+
+[root@host57 ~]# /etc/init.d/redis_6379 status
+cat: /var/run/redis_6379.pid: 没有那个文件或目录
+Redis is running ()
+[root@host57 ~]# netstat -utnalp  | grep  redis-server
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+[root@host51 ~]# redis-trib.rb reshard  192.168.4.51:6351
+
+[root@host51 ~]# redis-trib.rb del-node  192.168.4.51:6351   58a98b45058365c0f90594cce1db897d82a9f0d1
+>>> Removing node 58a98b45058365c0f90594cce1db897d82a9f0d1 from cluster 192.168.4.51:6351
+>>> Sending CLUSTER FORGET messages to the cluster...
+>>> SHUTDOWN the node.
+[root@host51 ~]#
+
+[root@host51 ~]# redis-trib.rb check  192.168.4.51:6351
+
++++++++++++++++++++++++++++++++++++++++++++++++
+
+[root@host50 ~]# /etc/init.d/redis_6379 start
+[root@host50 ~]# redis-cli   -h 192.168.4.50 -p 6350
+
+192.168.4.50:6350> CLUSTER RESET
+OK
+
+192.168.4.50:6350> cluster info
+cluster_state:fail
+
+> quit;
+
+++++++++++++++++++++++++++++++++++++++++++++++
+

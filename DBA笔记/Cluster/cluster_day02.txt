@@ -1,0 +1,118 @@
+50   client  
+hostname  host50 
+ifdown  eth0
+eth1      192.168.2.50
+
+51   调度器  
+hostname  lvs51
+eth0  192.168.4.51     
+eth1  192.168.2.51
+
+52  hostname web52  systemctl  start   httpd  eth0   192.168.4.52
+53  hostname web53  systemctl  start   httpd   eth0   192.168.4.53
+++++++++++++++++++++++++++++++++++++++++
+配置 VS/NAT模式 LB集群
+
+
+2  开启分发器的内核路径转发功能
+]# sysctl  -a
+
+]# vim  /etc/sysctl.conf
+net.ipv4.ip_forward=1
+:wq
+
+]# sysctl  -p
+
+3  web服务器指定网关地址
+
+
+4  在网站服务器上运行网站服务并编写网页文件
+
+5 配置调度器51
+5.1 装包 
+5.2 创建虚拟服务
+5.3 添加realserver
+5.4 保存配置
+5.5 查看虚拟服务的状态信息
+
+5.6 客户端连接vip地址访问网站服务
+http://192.168.2.51/test.html
+++++++++++++++++++++++++
+配置vs/dr模式的LB集群
+dr 直接路由模式： 
+客户端把访问网站的请求给 分发器,
+分发器，根据调度算法分发连接请求，
+realserver 接收到分发的连接请求后，
+realserver直接和客户端通信。
+
+配置：
+1  在realserver 和 分发器上绑定vip地址  ***
+2  在realserver上修改网卡内核参数
+3  在分发器上创建虚拟服务并添加realserver****
+4  客户端测试：查看调度器的状态信息时 只有进入的包没有出去的包
+http://192.168.4.253/test.html
+
+192.168.4.0/24
+
+访问一个主机时，会向网络中发送广播包。
+arp广播包，在同一个网络内的主机都能收到。
+
++++++++++++++++++++++++++++++++++++++++++++++++
+LVS51:
+  602  ipvsadm -C
+  603  ipvsadm-save  > /etc/sysconfig/ipvsadm
+[root@lvs51 ~]# tail  -1 /etc/sysctl.conf 
+#net.ipv4.ip_forward = 1
+[root@lvs51 ~]#
+[root@lvs51 ~]# ifdown  eth1
+[root@lvs51 ~]# ifconfig  eth0
+
+Web52/53/54/55 :
+]# systemctl  stop NetworkManager
+]# route del default gw 192.168.4.51
+]# route  -n
+]# ifconfig  eth0
+]# systemctl  start  httpd
+
+client50:
+]#ifdown eth1
+]#ifconfig eth0
+]# systemctl  stop NetworkManager
+]# route del default gw 192.168.4.51
+]# route  -n
+++++++++++++++++++++++++++++++++++++++
+
+
+[root@lvs51 ~]# ifconfig  eth0:1 192.168.4.253/32 
+[root@lvs51 ~]# ifconfig  eth0:1
+
+
+[root@web52 ~]# ifconfig  lo:1  192.168.4.253/32
+[root@web52 ~]# ifconfig lo:1
+
+[root@web53 ~]# ifconfig  lo:1  192.168.4.253/32
+[root@web53 ~]# ifconfig lo:1
+
+
+web53 ~]# echo 1  > /proc/sys/net/ipv4/conf/lo/arp_ignore
+web53 ~]# echo 2  > /proc/sys/net/ipv4/conf/lo/arp_announce 
+web53 ~]# echo 1  > /proc/sys/net/ipv4/conf/all/arp_ignore
+web53 ~]# echo 2  > /proc/sys/net/ipv4/conf/all/arp_announce
+
+
+web52 ~]# echo 1  > /proc/sys/net/ipv4/conf/lo/arp_ignore
+web52 ~]# echo 2  > /proc/sys/net/ipv4/conf/lo/arp_announce 
+web52 ~]# echo 1  > /proc/sys/net/ipv4/conf/all/arp_ignore
+web52 ~]# echo 2  > /proc/sys/net/ipv4/conf/all/arp_announce
+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+LVS51:
+  610  ipvsadm -C
+  616  ipvsadm -Ln
+  617  ipvsadm -A -t 192.168.4.253:80 -s rr
+  618  ipvsadm -Ln
+  619  ipvsadm -a -t 192.168.4.253:80 -r 192.168.4.52:80
+  620  ipvsadm -a -t 192.168.4.253:80 -r 192.168.4.53:80
+  621  ipvsadm -Ln
+  622  ipvsadm-save > /etc/sysconfig/ipvsadm
+  623  ipvsadm -Ln --stats
+++++++++++++++++++++++++++++++++++++++++++++
